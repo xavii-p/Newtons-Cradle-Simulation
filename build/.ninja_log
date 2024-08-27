@@ -1,5 +1,0 @@
-# ninja log v6
-32	1569	7461468513579075	CMakeFiles/physics_module.dir/src/Ball.cpp.o	ea47c54504ef3f08
-42	1573	7461468513684235	CMakeFiles/physics_module.dir/src/RigidBody.cpp.o	94f097d0af76874f
-24	1642	7461468513498973	CMakeFiles/physics_module.dir/src/physics_wrapper.cpp.o	44331c80d4607a24
-1642	2699	7461468529678237	physicsSim.js	58d1227bf42b81c4
