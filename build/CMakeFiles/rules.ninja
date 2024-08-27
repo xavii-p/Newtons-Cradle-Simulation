@@ -7,14 +7,14 @@
 
 # =============================================================================
 # Project: NewtonsCradle
-# Configurations: 
+# Configurations: Debug
 # =============================================================================
 # =============================================================================
 
 #############################################
 # Rule for compiling CXX files.
 
-rule CXX_COMPILER__physics_module_unscanned_
+rule CXX_COMPILER__physics_module_unscanned_Debug
   depfile = $DEP_FILE
   deps = gcc
   command = ${LAUNCHER}${CODE_CHECK}C:\DevTools\emsdk-main\upstream\emscripten\em++.bat $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -24,7 +24,7 @@ rule CXX_COMPILER__physics_module_unscanned_
 #############################################
 # Rule for linking CXX executable.
 
-rule CXX_EXECUTABLE_LINKER__physics_module_
+rule CXX_EXECUTABLE_LINKER__physics_module_Debug
   command = C:\WINDOWS\system32\cmd.exe /C "$PRE_LINK && C:\DevTools\emsdk-main\upstream\emscripten\em++.bat $FLAGS $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD"
   description = Linking CXX executable $TARGET_FILE
   restat = $RESTAT

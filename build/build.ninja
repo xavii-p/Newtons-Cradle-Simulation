@@ -12,7 +12,7 @@
 
 # =============================================================================
 # Project: NewtonsCradle
-# Configurations: 
+# Configurations: Debug
 # =============================================================================
 
 #############################################
@@ -20,6 +20,11 @@
 
 ninja_required_version = 1.5
 
+
+#############################################
+# Set configuration variable for custom commands.
+
+CONFIGURATION = Debug
 # =============================================================================
 # Include auxiliary files.
 
@@ -44,23 +49,23 @@ cmake_ninja_workdir = C$:/Users/Xavier/404/build/
 
 build cmake_object_order_depends_target_physics_module: phony || .
 
-build CMakeFiles/physics_module.dir/src/physics_wrapper.cpp.o: CXX_COMPILER__physics_module_unscanned_ C$:/Users/Xavier/404/src/physics_wrapper.cpp || cmake_object_order_depends_target_physics_module
+build CMakeFiles/physics_module.dir/src/physics_wrapper.cpp.o: CXX_COMPILER__physics_module_unscanned_Debug C$:/Users/Xavier/404/src/physics_wrapper.cpp || cmake_object_order_depends_target_physics_module
   DEP_FILE = CMakeFiles\physics_module.dir\src\physics_wrapper.cpp.o.d
-  FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] -s ALLOW_MEMORY_GROWTH=1 -std=gnu++14
+  FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] -s ALLOW_MEMORY_GROWTH=1 -g -std=gnu++14
   INCLUDES = -IC:/Users/Xavier/404/src
   OBJECT_DIR = CMakeFiles\physics_module.dir
   OBJECT_FILE_DIR = CMakeFiles\physics_module.dir\src
 
-build CMakeFiles/physics_module.dir/src/Ball.cpp.o: CXX_COMPILER__physics_module_unscanned_ C$:/Users/Xavier/404/src/Ball.cpp || cmake_object_order_depends_target_physics_module
+build CMakeFiles/physics_module.dir/src/Ball.cpp.o: CXX_COMPILER__physics_module_unscanned_Debug C$:/Users/Xavier/404/src/Ball.cpp || cmake_object_order_depends_target_physics_module
   DEP_FILE = CMakeFiles\physics_module.dir\src\Ball.cpp.o.d
-  FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] -s ALLOW_MEMORY_GROWTH=1 -std=gnu++14
+  FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] -s ALLOW_MEMORY_GROWTH=1 -g -std=gnu++14
   INCLUDES = -IC:/Users/Xavier/404/src
   OBJECT_DIR = CMakeFiles\physics_module.dir
   OBJECT_FILE_DIR = CMakeFiles\physics_module.dir\src
 
-build CMakeFiles/physics_module.dir/src/RigidBody.cpp.o: CXX_COMPILER__physics_module_unscanned_ C$:/Users/Xavier/404/src/RigidBody.cpp || cmake_object_order_depends_target_physics_module
+build CMakeFiles/physics_module.dir/src/RigidBody.cpp.o: CXX_COMPILER__physics_module_unscanned_Debug C$:/Users/Xavier/404/src/RigidBody.cpp || cmake_object_order_depends_target_physics_module
   DEP_FILE = CMakeFiles\physics_module.dir\src\RigidBody.cpp.o.d
-  FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] -s ALLOW_MEMORY_GROWTH=1 -std=gnu++14
+  FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] -s ALLOW_MEMORY_GROWTH=1 -g -std=gnu++14
   INCLUDES = -IC:/Users/Xavier/404/src
   OBJECT_DIR = CMakeFiles\physics_module.dir
   OBJECT_FILE_DIR = CMakeFiles\physics_module.dir\src
@@ -73,8 +78,8 @@ build CMakeFiles/physics_module.dir/src/RigidBody.cpp.o: CXX_COMPILER__physics_m
 #############################################
 # Link the executable physicsSim.js
 
-build physicsSim.js: CXX_EXECUTABLE_LINKER__physics_module_ CMakeFiles/physics_module.dir/src/physics_wrapper.cpp.o CMakeFiles/physics_module.dir/src/Ball.cpp.o CMakeFiles/physics_module.dir/src/RigidBody.cpp.o
-  FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] -s ALLOW_MEMORY_GROWTH=1
+build physicsSim.js: CXX_EXECUTABLE_LINKER__physics_module_Debug CMakeFiles/physics_module.dir/src/physics_wrapper.cpp.o CMakeFiles/physics_module.dir/src/Ball.cpp.o CMakeFiles/physics_module.dir/src/RigidBody.cpp.o
+  FLAGS = -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=1 -s EXPORTED_RUNTIME_METHODS=['ccall','cwrap'] -s ALLOW_MEMORY_GROWTH=1 -g
   LINK_FLAGS = --bind
   OBJECT_DIR = CMakeFiles\physics_module.dir
   POST_BUILD = cd .
