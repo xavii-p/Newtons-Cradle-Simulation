@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Newton's Cradle Simulation</title>
+    <style>
+      body {
+        margin: 0;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.159.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.159.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { DragControls } from "three/addons/controls/DragControls.js";
+      import Module from "./build/physicsSim.js";
+
+      let scene, camera, renderer, orbitControls, dragControls;
+      let balls = [];
+      const numBalls = 5;
+      const ballRadius = 0.5;
+      const ballSpacing = 0.01;
+      const stringLength = 5;
+      const topBarY = 4.5; // Y position of the top bars
+      const boardY = -2; // Y position of the top of the board
+      const stringSpacing = 0.2; // Spacing between string attachment points on the bars
+      const frontBarZ = -2.0; // Z position of the front bar
+      const backBarZ = 2; // Z position of the back bar (moved further back)
+      let module;
+
+      // Physics simulation parameters
+      const fixedDeltaTime = 1 / 240;
+      const maxSubSteps = 10;
+      let accumulator = 0;
+      let lastTime = 0;
+      let isDragging = false;
+
+      function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf0f0f0);
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        // Lights
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 7);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+
+        // Add a second directional light from the opposite side
+        const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
+        directionalLight2.position.set(-5, 8, -7);
+        scene.add(directionalLight2);
+
+        // Adjust shadow properties for better quality
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.camera.near = 0.5;
+        directionalLight.shadow.camera.far = 500;
+
+        // Camera and controls
+        camera.position.set(0, 5, 15);
+        orbitControls = new OrbitControls(camera, renderer.domElement);
+
+        createEnvironment();
+
+        Module().then((mod) => {
+          module = mod;
+          createBalls();
+          setupDragControls();
+          lastTime = performance.now() / 1000;
+          animate();
+        });
+      }
+
+      function createEnvironment() {
+        // Create desk
+        const deskGeometry = new THREE.BoxGeometry(20, 0.5, 10);
+        const deskMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
+        const desk = new THREE.Mesh(deskGeometry, deskMaterial);
+        desk.position.set(0, boardY - 0.75, 0); // Position desk below the board
+        desk.receiveShadow = true;
+        scene.add(desk);
+
+        // Create board
+        const boardGeometry = new THREE.BoxGeometry(12, 0.5, 6);
+        const boardMaterial = new THREE.MeshStandardMaterial({
+          color: 0xcccccc,
+          metalness: 0.9,
+          roughness: 0.1,
+        });
+        const board = new THREE.Mesh(boardGeometry, boardMaterial);
+        board.position.set(0, boardY - 0.25, 0); // Position board just above the desk
+        board.receiveShadow = true;
+        scene.add(board);
+
+        // Create poles
+        const poleGeometry = new THREE.CylinderGeometry(
+          0.1,
+          0.1,
+          topBarY - boardY
+        );
+        const poleMaterial = new THREE.MeshPhysicalMaterial({
+          color: 0xf4f3f3,
+          metalness: 0.7,
+          roughness: 0.3,
+          clearcoat: 0.5,
+          clearcoatRoughness: 0.4,
+          reflectivity: 0.5,
+        });
+
+        const leftFrontPole = new THREE.Mesh(poleGeometry, poleMaterial);
+        leftFrontPole.position.set(-5.5, (topBarY + boardY) / 2, frontBarZ);
+        leftFrontPole.castShadow = true;
+        scene.add(leftFrontPole);
+
+        const rightFrontPole = new THREE.Mesh(poleGeometry, poleMaterial);
+        rightFrontPole.position.set(5.5, (topBarY + boardY) / 2, frontBarZ);
+        rightFrontPole.castShadow = true;
+        scene.add(rightFrontPole);
+
+        const leftBackPole = new THREE.Mesh(poleGeometry, poleMaterial);
+        leftBackPole.position.set(-5.5, (topBarY + boardY) / 2, backBarZ);
+        leftBackPole.castShadow = true;
+        scene.add(leftBackPole);
+
+        const rightBackPole = new THREE.Mesh(poleGeometry, poleMaterial);
+        rightBackPole.position.set(5.5, (topBarY + boardY) / 2, backBarZ);
+        rightBackPole.castShadow = true;
+        scene.add(rightBackPole);
+
+        // Create front and back top bars
+        const topBarGeometry = new THREE.CylinderGeometry(0.1, 0.1, 11.2);
+        const topBarMaterial = new THREE.MeshPhysicalMaterial({
+          color: 0xf4f3f3,
+          metalness: 0.7,
+          roughness: 0.3,
+          clearcoat: 0.5,
+          clearcoatRoughness: 0.4,
+          reflectivity: 0.5,
+        });
+
+        const frontTopBar = new THREE.Mesh(topBarGeometry, topBarMaterial);
+        frontTopBar.rotation.z = Math.PI / 2;
+        frontTopBar.position.set(0, topBarY, frontBarZ);
+        frontTopBar.castShadow = true;
+        scene.add(frontTopBar);
+
+        const backTopBar = new THREE.Mesh(topBarGeometry, topBarMaterial);
+        backTopBar.rotation.z = Math.PI / 2;
+        backTopBar.position.set(0, topBarY, backBarZ);
+        backTopBar.castShadow = true;
+        scene.add(backTopBar);
+      }
+
+      function createBalls() {
+        const ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32);
+        const ballMaterial = new THREE.MeshPhysicalMaterial({
+          color: 0xf4f3f3,
+          metalness: 0.7,
+          roughness: 0.3,
+          clearcoat: 0.5,
+          clearcoatRoughness: 0.4,
+          reflectivity: 0.5,
+        });
+
+        for (let i = 0; i < numBalls; i++) {
+          const x = (i - (numBalls - 1) / 2) * (ballRadius * 2 + ballSpacing);
+          const y = topBarY - stringLength; // All balls at the same height
+          const ball = new THREE.Mesh(ballGeometry, ballMaterial);
+          ball.position.set(x, y, 0);
+          ball.castShadow = true;
+          ball.receiveShadow = true;
+          scene.add(ball);
+
+          const mass = 1;
+          const pos = new module.Vec3D(x, y, 0);
+          const vel = new module.Vec3D(0, 0, 0);
+          ball.physicsObject = new module.Ball(mass, ballRadius, pos, vel);
+          ball.previousState = {
+            position: ball.position.clone(),
+            velocity: new THREE.Vector3(),
+          };
+
+          balls.push(ball);
+
+          // Create two strings
+          const stringMaterial = new THREE.LineBasicMaterial({
+            color: 0x000000,
+          });
+
+          // Front string (connected to front bar)
+          const frontStringGeometry = new THREE.BufferGeometry();
+          const frontStringPoints = [
+            new THREE.Vector3(x - stringSpacing, topBarY, frontBarZ), // Connected to front bar
+            ball.position,
+          ];
+          frontStringGeometry.setFromPoints(frontStringPoints);
+          const frontString = new THREE.Line(
+            frontStringGeometry,
+            stringMaterial
+          );
+          scene.add(frontString);
+          ball.frontString = frontString;
+
+          // Back string (connected to back bar)
+          const backStringGeometry = new THREE.BufferGeometry();
+          const backStringPoints = [
+            new THREE.Vector3(x + stringSpacing, topBarY, backBarZ), // Connected to back bar
+            ball.position,
+          ];
+          backStringGeometry.setFromPoints(backStringPoints);
+          const backString = new THREE.Line(backStringGeometry, stringMaterial);
+          scene.add(backString);
+          ball.backString = backString;
+        }
+      }
+
+      function updateStringPositions(ball) {
+        const frontStringTopPosition = new THREE.Vector3(
+          ball.position.x - stringSpacing,
+          topBarY,
+          frontBarZ
+        );
+        const backStringTopPosition = new THREE.Vector3(
+          ball.position.x + stringSpacing,
+          topBarY,
+          backBarZ
+        );
+
+        // Calculate the direction vectors for the strings
+        const frontDir = new THREE.Vector3()
+          .subVectors(ball.position, frontStringTopPosition)
+          .normalize();
+        const backDir = new THREE.Vector3()
+          .subVectors(ball.position, backStringTopPosition)
+          .normalize();
+
+        // Set the end points of the strings
+        const frontStringEndPosition = new THREE.Vector3().addVectors(
+          frontStringTopPosition,
+          frontDir.multiplyScalar(stringLength)
+        );
+        const backStringEndPosition = new THREE.Vector3().addVectors(
+          backStringTopPosition,
+          backDir.multiplyScalar(stringLength)
+        );
+
+        ball.frontString.geometry.setFromPoints([
+          frontStringTopPosition,
+          frontStringEndPosition,
+        ]);
+        ball.frontString.geometry.verticesNeedUpdate = true;
+
+        ball.backString.geometry.setFromPoints([
+          backStringTopPosition,
+          backStringEndPosition,
+        ]);
+        ball.backString.geometry.verticesNeedUpdate = true;
+      }
+
+      function setupDragControls() {
+        dragControls = new DragControls(balls, camera, renderer.domElement);
+        dragControls.addEventListener("dragstart", () => {
+          orbitControls.enabled = false;
+          isDragging = true;
+        });
+        dragControls.addEventListener("dragend", () => {
+          orbitControls.enabled = true;
+          isDragging = false;
+        });
+        dragControls.addEventListener("drag", (event) => {
+          const ball = event.object;
+          const ballIndex = balls.indexOf(ball);
+
+          // Calculate the new position while maintaining string length
+          const newPosition = new THREE.Vector3(
+            ball.position.x,
+            ball.position.y,
+            0
+          );
+          const topBarPosition = new THREE.Vector3(0, topBarY, 0);
+          newPosition
+            .sub(topBarPosition)
+            .normalize()
+            .multiplyScalar(stringLength)
+            .add(topBarPosition);
+
+          // Prevent dragging past adjacent balls
+          if (ballIndex > 0) {
+            newPosition.x = Math.max(
+              newPosition.x,
+              balls[ballIndex - 1].position.x + ballRadius * 2 + ballSpacing
+            );
+          }
+          if (ballIndex < balls.length - 1) {
+            newPosition.x = Math.min(
+              newPosition.x,
+              balls[ballIndex + 1].position.x - ballRadius * 2 - ballSpacing
+            );
+          }
+
+          ball.position.copy(newPosition);
+
+          // Update WASM ball position
+          module.setBallPosition(
+            ball.physicsObject,
+            new module.Vec3D(ball.position.x, ball.position.y, ball.position.z)
+          );
+          module.setBallVelocity(ball.physicsObject, new module.Vec3D(0, 0, 0));
+
+          // Move previous balls if dragging a middle ball outwards
+          if (
+            ballIndex > 0 &&
+            ball.position.x <
+              balls[ballIndex - 1].position.x + ballRadius * 2 + ballSpacing
+          ) {
+            for (let i = ballIndex - 1; i >= 0; i--) {
+              const prevBallPosition = new THREE.Vector3(
+                ball.position.x -
+                  (ballIndex - i) * (ballRadius * 2 + ballSpacing),
+                topBarY,
+                0
+              );
+              prevBallPosition
+                .sub(topBarPosition)
+                .normalize()
+                .multiplyScalar(stringLength)
+                .add(topBarPosition);
+              balls[i].position.copy(prevBallPosition);
+              module.setBallPosition(
+                balls[i].physicsObject,
+                new module.Vec3D(
+                  balls[i].position.x,
+                  balls[i].position.y,
+                  balls[i].position.z
+                )
+              );
+              module.setBallVelocity(
+                balls[i].physicsObject,
+                new module.Vec3D(0, 0, 0)
+              );
+              updateStringPositions(balls[i]);
+            }
+          }
+
+          updateStringPositions(ball);
+        });
+      }
+
+      function updatePhysics(dt) {
+        if (isDragging) return;
+
+        const gravity = 9.81;
+
+        balls.forEach((ball) => {
+          ball.previousState.position.copy(ball.position);
+          const prevVel = module.getBallVelocity(ball.physicsObject);
+          ball.previousState.velocity.set(prevVel.x, prevVel.y, prevVel.z);
+
+          module.updatePendulum(ball.physicsObject, dt, stringLength, gravity);
+
+          // Ensure the ball stays on the arc
+          const newPos = module.getBallPosition(ball.physicsObject);
+          const topBarPosition = new THREE.Vector3(0, topBarY, 0);
+          const ballPosition = new THREE.Vector3(newPos.x, newPos.y, newPos.z);
+          ballPosition
+            .sub(topBarPosition)
+            .normalize()
+            .multiplyScalar(stringLength)
+            .add(topBarPosition);
+          module.setBallPosition(
+            ball.physicsObject,
+            new module.Vec3D(ballPosition.x, ballPosition.y, ballPosition.z)
+          );
+        });
+
+        for (let i = 0; i < balls.length - 1; i++) {
+          for (let j = i + 1; j < balls.length; j++) {
+            if (
+              module.isColliding(balls[i].physicsObject, balls[j].physicsObject)
+            ) {
+              module.handleCollision(
+                balls[i].physicsObject,
+                balls[j].physicsObject
+              );
+            }
+          }
+        }
+      }
+
+      function interpolateState(alpha) {
+        balls.forEach((ball) => {
+          const currentPos = module.getBallPosition(ball.physicsObject);
+          ball.position.lerpVectors(
+            ball.previousState.position,
+            new THREE.Vector3(currentPos.x, currentPos.y, currentPos.z),
+            alpha
+          );
+          updateStringPositions(ball);
+        });
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        const currentTime = performance.now() / 1000;
+        const frameTime = Math.min(currentTime - lastTime, 0.25);
+        lastTime = currentTime;
+
+        accumulator += frameTime;
+
+        let numSubSteps = 0;
+        while (accumulator >= fixedDeltaTime && numSubSteps < maxSubSteps) {
+          updatePhysics(fixedDeltaTime);
+          accumulator -= fixedDeltaTime;
+          numSubSteps++;
+        }
+
+        const alpha = accumulator / fixedDeltaTime;
+        interpolateState(alpha);
+
+        orbitControls.update();
+        renderer.render(scene, camera);
+      }
+
+      init();
+
+      window.addEventListener(
+        "resize",
+        () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        },
+        false
+      );
+    </script>
+  </body>
+</html>
