@@ -30,3 +30,20 @@
 *.exe
 *.out
 *.app
+
+# Build directories and files
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+build.ninja
+*.ninja_log
+*.ninja_deps
+
+# Emscripten specific
+*.js
+*.wasm
+*.html
+
+# Other
+*.log
