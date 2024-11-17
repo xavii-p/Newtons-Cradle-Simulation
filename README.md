@@ -54,23 +54,11 @@ The repository does not contain any build files. You need to ensure that the pat
 
 ## Running the Simulation
 
-1. Open `test.html` in a web browser to view the simulation.
+1. Run the  respective build script with the prerequisites installed
+2. Open `test.html` in a web browser to view the simulation.
 
-## Dependencies
 
-- **Emscripten**: For compiling C++ code to WebAssembly.
-- **Three.js**: For rendering the simulation.
-- **CMake**: For managing the build process.
-- **Ninja**: For building the project.
 
-## Configuration Files
-
-- **CMakeLists.txt**: CMake configuration file for the project.
-- **.gitignore**: Specifies files and directories to be ignored by Git.
-
-## License
-
-This project is licensed under the MIT License.
 
 ## Acknowledgements
 
