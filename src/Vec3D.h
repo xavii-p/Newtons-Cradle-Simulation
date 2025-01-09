@@ -13,6 +13,9 @@
         float y;
         float z;
 
+        // Default constructor
+        Vec3D() : x(0.0f), y(0.0f), z(0.0f) {}
+
         Vec3D(float x_val, float y_val, float z_val) : x(x_val), y(y_val), z(z_val) {}
 
         float magnitude() const {
@@ -56,6 +59,10 @@
             return Vec3D(x * scalar, y * scalar, z * scalar);
         }
 
+        friend Vec3D operator*(float scalar, const Vec3D& vec) {
+            return vec * scalar;
+        }
+
         Vec3D operator/(float scalar) const {
             return Vec3D(x / scalar, y / scalar, z / scalar);
         }
@@ -72,6 +79,13 @@
             x += other.x;
             y += other.y;
             z += other.z;
+            return *this;
+        }
+
+        Vec3D& operator*=(float scalar) {
+            x *= scalar;
+            y *= scalar;
+            z *= scalar;
             return *this;
         }
 
