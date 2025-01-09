@@ -1,4 +1,4 @@
-# Physics Engine & Newton's Cradle Simulation
+# Newton's Cradle Simulation with Basic Physics Calculations
 
 ## Overview
 
