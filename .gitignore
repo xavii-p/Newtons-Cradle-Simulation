@@ -47,3 +47,6 @@ build.ninja
 
 # Other
 *.log
+
+# macOS system files
+.DS_Store
