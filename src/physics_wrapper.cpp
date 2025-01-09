@@ -73,7 +73,6 @@ EMSCRIPTEN_BINDINGS(physics_module) {
     function("cross", &cross);
     function("magnitude", &magnitude);
 
-    function("updatePendulum", &updatePendulum);
     function("isColliding", &isColliding);
     function("handleCollision", &handleCollision);
     function("getBallRadius", &getBallRadius);
@@ -84,6 +83,12 @@ EMSCRIPTEN_BINDINGS(physics_module) {
     function("setBallVelocity", &setBallVelocity);
     function("getBallMass", &getBallMass);
     function("lerpBall", &lerpBall);
+
+    class_<RigidBody>("RigidBody")
+        .constructor<float, const Vec3D&, const Vec3D&>()
+        .constructor<float>()
+        .function("updateRK4", &RigidBody::updateRK4)
+        .function("updatePendulum", &RigidBody::updatePendulum);
 
     class_<Vec3D>("Vec3D")
         .constructor<float, float, float>()
