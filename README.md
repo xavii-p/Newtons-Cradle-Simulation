@@ -55,7 +55,9 @@ The repository does not contain any build files. You need to ensure that the pat
 ## Running the Simulation
 
 1. Run the  respective build script with the prerequisites installed
-2. Open `test.html` in a web browser to view the simulation.
+2. Ensure python is installed on your system, navigate to the project directory, and run ```python -m http.server {port}```
+3. Navigate to ```localhost:{port}``` in a web browser
+4. Open `test.html` in the web browser to view the simulation.
 
 
 
