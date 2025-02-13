@@ -1,5 +1,5 @@
 # Newton's Cradle Simulation with Basic Physics Calculations
-
+![Newton's Cradle Simulation](public/images/physics.png)
 ## Overview
 
 This project is a simulation of Newton's Cradle using WebAssembly and Emscripten. The simulation is rendered using Three.js and includes physics calculations for realistic motion.
